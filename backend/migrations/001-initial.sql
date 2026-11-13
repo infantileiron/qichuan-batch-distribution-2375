@@ -1,3 +1,4 @@
 -- Initial schema source: src/models/*.py; metadata.create_all creates missing tables.
 -- Raw batches and label-independent policy frozen per study; immutable run/review/report IDs.
 -- sigma DOUBLE, permutation counts/seed INTEGER; calculations NumPy Float64.
+-- leave_one_out_diagnostics references a completed run; stores progress and per-sample results without altering the run.

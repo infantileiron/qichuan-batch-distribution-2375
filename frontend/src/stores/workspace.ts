@@ -1,4 +1,4 @@
-import * as datasets from '../api/datasets';import * as policies from '../api/policies';import * as studies from '../api/studies';import * as runs from '../api/runs';import * as reviews from '../api/reviews';import * as reports from '../api/reports';import * as audit from '../api/audit';
-export async function loadWorkspace(){const [ds,ps,ss,rs,vs,hs,as]=await Promise.all([datasets.list(),policies.list(),studies.list(),runs.list(),reviews.list(),reports.list(),audit.list()]);return {datasets:ds,policies:ps,studies:ss,runs:rs,reviews:vs,reports:hs,audit:as}}
+import * as datasets from '../api/datasets';import * as policies from '../api/policies';import * as studies from '../api/studies';import * as runs from '../api/runs';import * as reviews from '../api/reviews';import * as reports from '../api/reports';import * as audit from '../api/audit';import * as diagnostics from '../api/diagnostics';
+export async function loadWorkspace(){const [ds,ps,ss,rs,vs,hs,as,ls]=await Promise.all([datasets.list(),policies.list(),studies.list(),runs.list(),reviews.list(),reports.list(),audit.list(),diagnostics.list()]);return {datasets:ds,policies:ps,studies:ss,runs:rs,reviews:vs,reports:hs,audit:as,diagnostics:ls}}
 export type Workspace=Awaited<ReturnType<typeof loadWorkspace>>;
-export const empty:Workspace={datasets:[],policies:[],studies:[],runs:[],reviews:[],reports:[],audit:[]};
+export const empty:Workspace={datasets:[],policies:[],studies:[],runs:[],reviews:[],reports:[],audit:[],diagnostics:[]};

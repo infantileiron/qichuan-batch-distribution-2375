@@ -3,3 +3,6 @@ export const SCALINGS={none:'原始L*a*b*',pooled_std:'合并总体SD缩放'};
 export const BANDWIDTHS={fixed:'固定sigma',pooled_median:'合并距离中位数'};
 export const RUN_STATUSES={queued:'排队中',running:'置换计算中',completed:'已完成',failed:'失败可恢复'};
 export const REVIEW_DECISIONS={accepted:'接受并提请归档',needs_changes:'待补充依据'};
+export const DIAGNOSTIC_STATUSES={queued:'排队中',running:'逐样重估中',completed:'已完成',failed:'失败可恢复'};
+export const DIAGNOSTIC_ITEM_STATUSES={ok:'已重估',insufficient_sample:'样本不足',bandwidth_degenerate:'核宽退化',error:'计算异常'};
+export const DIAGNOSTIC_BUDGET={maxUnits:200,maxEvaluations:80000};

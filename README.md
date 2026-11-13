@@ -14,6 +14,7 @@
 6. 09:25 查看两条共享排列分布、极端次数、B+1分母与三维边际。
 7. 09:30 分别解释两个未经多重校正的p，写明独立可交换假设，提交接受或待补充复核版本。
 8. 09:40 负责人批准最新接受版本，下载绑定运行、口径、复核版本与校验和的CSV。
+9. 之后如怀疑迁移只由个别极端色样撑起，可在统计页对已完成运行发起逐样本留一诊断：每个色样缺席时重新估计合并缩放和核宽，用原B/seed重跑共享排列，查看进度并导出明细CSV。
 
 ## 快速启动
 
@@ -45,9 +46,15 @@ docker compose exec backend python -m scripts.seed_demo
 
 真实API每批4至120条完整有限读数，算法函数支持每批至少2点的手算。允许不同样本读数相同，样本ID跨两批唯一。两个检验的p**未做多重校正**，分别人工复核，不合并成自动迁移结论。p不是迁移概率；有限随机排列有分辨率与抽样变动。假设样本独立可交换；成对、时序或同缸相关读数可能不适用。原始三维欧氏坐标不是DeltaE00，缩放后的Energy单位也不同于原始读数口径。
 
+### 逐样本留一诊断
+
+`services/leave_one_out.py::leave_one_out(raw_a,raw_b,policy,original)` 只读取已完成运行冻结的原始读数与口径，**不修改**原统计、完整排列、复核版本或归档CSV。对每个色样逐个删除：用剩余合并样本重新估计总体均值/SD（pooled_std）与合并非对角距离中位核宽（pooled_median；固定sigma保持原锁定值），再以原运行的B与seed重跑共享排列，Energy与MMD使用同一次排列，`p=(1+extreme_count)/(B+1)`，未作多重校正。逐项输出当前统计、极端次数、p、重估center/scale/sigma以及相对原统计、原p、原极端次数的差值，前端按Δp与极端次数变化标出“无变动/有变动/强依赖”。
+
+样本不足（缺席后任一检验组少于2条）标为 `insufficient_sample`；自动核宽中位数为0或非有限标为 `bandwidth_degenerate`；单项异常标为 `error`。这些色样单独列出原因，不中断其余色样。诊断在预算内才创建：最多200个色样且 `色样数×(B+1)` 最多80000次共享排列计算，超预算请求以422拒绝并说明原因，不占用worker。诊断记录在 `leave_one_out_diagnostics`，页面位于“统计与置换证据”的逐样本留一页签，可发起（analyst/admin）、查看进度（写入式轮询）并导出逐样本、逐检验的明细CSV（含状态、原因、基线、差值与预算）。
+
 ## 实体与技术
 
-六实体 ColorBatchDataset、KernelPolicy、DistributionStudy、DistributionRun、ShiftReview、Report，贯穿表/model/schema/service/route、前端API/store/page。研究冻结原始批次及口径；运行保存原始读数、变换参数、统计、完整排列与分布；每次复核新增不可变版本。归档绑定最新接受复核ID，后续新复核不改变旧CSV。
+七实体 ColorBatchDataset、KernelPolicy、DistributionStudy、DistributionRun、ShiftReview、Report、LeaveOneOutDiagnostic，贯穿表/model/schema/service/route、前端API/store/page。研究冻结原始批次及口径；运行保存原始读数、变换参数、统计、完整排列与分布；每次复核新增不可变版本。归档绑定最新接受复核ID，后续新复核不改变旧CSV。逐样本留一诊断记录引用其源运行但与原运行分离，不参与复核与归档绑定。
 
 | 部分 | 技术 |
 |---|---|
@@ -66,7 +73,7 @@ docker compose exec backend python -m scripts.seed_demo
 
 ## 边界与清理
 
-最多每批120条、API最多999次随机排列，不进行全枚举或多重校正。读数仅JSON表单导入；新口径需新研究，不覆盖已冻结统计。边际图共享每维合并范围分箱，只是观察视图，多元检验使用全部三维。单worker无生产级分布式租约，初始SQLAlchemy建表不含生产迁移回滚，无多租户隔离。模拟均值/方差/多峰不代表真实颜色质量或工艺变化原因。
+最多每批120条、API最多999次随机排列，不进行全枚举或多重校正。逐样本留一诊断自身限最多200个色样、80000次共享排列计算，超预算拒绝。读数仅JSON表单导入；新口径需新研究，不覆盖已冻结统计。边际图共享每维合并范围分箱，只是观察视图，多元检验使用全部三维。单worker无生产级分布式租约，初始SQLAlchemy建表不含生产迁移回滚，无多租户隔离。模拟均值/方差/多峰不代表真实颜色质量或工艺变化原因。
 
 ```sh
 docker compose down -v --remove-orphans

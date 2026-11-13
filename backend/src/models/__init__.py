@@ -6,3 +6,4 @@ from .study import DistributionStudy
 from .run import DistributionRun
 from .review import ShiftReview
 from .report import Report
+from .diagnostic import LeaveOneOutDiagnostic
